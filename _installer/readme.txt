@@ -1,6 +1,11 @@
 BazisLib is an universal framework simplifying driver and application creation for 32-bit and 64-bit Windows.
 This installer will unpack all BazisLib sources, set all required environment variables and download all required libraries, such as STLPort.
 
+Maintenance update:
+	* Refactored Base64 decoding validation in bzsnet
+	* Added CommonFunctionalityTests coverage for Base64 encoding and decoding
+	* Updated repository documentation with the current source layout
+
 New in version 3.0.0:
 	* Added support for MacOS kernel
 	* Added new bzscore/bzshlp layout

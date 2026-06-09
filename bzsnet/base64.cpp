@@ -4,6 +4,47 @@
 using namespace BazisLib;
 using namespace BazisLib::Network;
 
+template <class _CharType> static inline bool DecodeBase64Char(_CharType tch, unsigned char &value, bool &padding)
+{
+	padding = false;
+	if ((tch > 0x7F) || (tch <= 0))
+		return false;
+
+	unsigned char ch = (unsigned char)tch;
+	if ((ch >= 'A') && (ch <= 'Z'))
+	{
+		value = ch - 'A';
+		return true;
+	}
+	if ((ch >= 'a') && (ch <= 'z'))
+	{
+		value = ch - 'a' + 26;
+		return true;
+	}
+	if ((ch >= '0') && (ch <= '9'))
+	{
+		value = ch - '0' + 52;
+		return true;
+	}
+	if (ch == '+')
+	{
+		value = 62;
+		return true;
+	}
+	if (ch == '/')
+	{
+		value = 63;
+		return true;
+	}
+	if (ch == '=')
+	{
+		value = 0;
+		padding = true;
+		return true;
+	}
+	return false;
+}
+
 template <class _CharType> static inline void Base64Encode(const void *pPtr, unsigned Size, _DynamicStringT<_CharType> &buffer)
 {
 	static const unsigned char Base64Alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -51,14 +92,13 @@ template <class _CharType> static inline void Base64Encode(const void *pPtr, uns
 
 template <class _CharType, class _BufferType> static inline bool Base64Decode(const _TempStringImplT<_CharType> &string, _BufferType &buffer)
 {
-	static const unsigned char ReversedBase64Alphabet[256] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x3E\0\0\0\x3F\x34\x35\x36\x37\x38\x39\x3A\x3B\x3C\x3D\0\0\0\0\0\0\0\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\0\0\0\0\0\0\x1A\x1B\x1C\x1D\x1E\x1F\x20\x21\x22\x23\x24\x25\x26\x27\x28\x29\x2A\x2B\x2C\x2D\x2E\x2F\x30\x31\x32\x33";
 	size_t size = string.length();
 	unsigned nchar = 0;
-	register unsigned chopcnt = 0;
-	register unsigned tempValue = 0;
+	unsigned chopcnt = 0;
+	unsigned tempValue = 0;
 	unsigned char tmpBuf[3];
 	buffer.reserve((size * 3) / 4);
-	for (size_t i = 0, j = 0; i < size; i++)
+	for (size_t i = 0; i < size; i++)
 	{
 		//BASE64 does not allow symbols with code less than 0x21 to
 		//be used.
@@ -69,7 +109,12 @@ template <class _CharType, class _BufferType> static inline bool Base64Decode(co
 		if (ch <= 0x0D)
 			continue; //to filter 0x0d or 0x0a symbols (\r and \n)
 
-		if (ch == '=')
+		unsigned char decoded = 0;
+		bool padding = false;
+		if (!DecodeBase64Char(tch, decoded, padding))
+			return false;
+
+		if (padding)
 			chopcnt++;
 		else
 		{
@@ -80,16 +125,16 @@ template <class _CharType, class _BufferType> static inline bool Base64Decode(co
 		switch (nchar++)
 		{
 		case 0:
-			tempValue  = (ReversedBase64Alphabet[ch] << 18);
+			tempValue  = (decoded << 18);
 			break;
 		case 1:
-			tempValue |= (ReversedBase64Alphabet[ch] << 12);
+			tempValue |= (decoded << 12);
 			break;
 		case 2:
-			tempValue |= (ReversedBase64Alphabet[ch] << 6);
+			tempValue |= (decoded << 6);
 			break;
 		case 3:
-			tempValue |= (ReversedBase64Alphabet[ch] << 0);
+			tempValue |= (decoded << 0);
 			nchar = 0;
 			tmpBuf[0] = (tempValue >> 16) & 0xFF;
 			tmpBuf[1] = (tempValue >> 8) & 0xFF;
