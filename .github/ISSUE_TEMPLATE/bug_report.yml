@@ -1,0 +1,76 @@
+name: Bug report
+description: Report a reproducible BazisLib defect.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please include enough detail for someone else to reproduce it.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What is broken?
+      placeholder: Describe the bug and the affected component, for example bzscore, bzsnet, bzshlp, examples, tests, or installer.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: List exact commands, project configuration, input data, or code needed to reproduce the issue.
+      placeholder: |
+        1. Open ...
+        2. Build ...
+        3. Run ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should happen instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include errors, logs, stack traces, or screenshots when useful.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: target
+    attributes:
+      label: Target environment
+      multiple: true
+      options:
+        - Windows user-mode
+        - Windows kernel-mode
+        - POSIX user-mode
+        - MacOS kernel-mode
+        - Installer
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: toolchain
+    attributes:
+      label: Toolchain
+      description: Compiler, Visual Studio, WDK, GCC, Clang, or OS version.
+      placeholder: Visual Studio 2022, WDK 10, Windows 11 x64
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Add any related files, commits, workarounds, or notes.
