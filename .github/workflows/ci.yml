@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  common-functionality-tests:
+    name: Common functionality tests
+    runs-on: windows-2022
+
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration:
+          - Debug
+          - Release
+
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@v4
+
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build CommonFunctionalityTests
+        shell: pwsh
+        run: >
+          msbuild tests\CommonFunctionalityTests\CommonFunctionalityTests.sln
+          /m
+          /t:CommonFunctionalityTests
+          /p:Configuration=${{ matrix.configuration }}
+          /p:Platform=Win32
+          /p:PlatformToolset=v142
+          /p:WindowsTargetPlatformVersion=10.0
+          /p:BZSLIB_PATH=${{ github.workspace }}
+          /p:STLPORT_PATH=${{ github.workspace }}\external\stlport
+
+      - name: Run CommonFunctionalityTests
+        shell: pwsh
+        run: |
+          $test = Get-ChildItem -Path tests\CommonFunctionalityTests -Recurse -Filter CommonFunctionalityTests.exe |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+
+          if (-not $test) {
+            throw 'CommonFunctionalityTests.exe was not produced by the build.'
+          }
+
+          & $test.FullName
